@@ -157,7 +157,7 @@ module.exports = {
   async getComplexData(complexId) {
     try {
       const complexData = await DAL.Find(complexMDL, {
-        attributes: ["id", "name", "schedule", "phone", "waze_link"],
+        attributes: ["id", "name", "schedule", "phone"],
         raw: true,
         where: { id: complexId }
       });
