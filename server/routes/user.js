@@ -3,9 +3,9 @@ const { appointment } = require("../controllers");
 const router = express.Router();
 const userController = require("../controllers").user;
 const responseHandler = require("../utilities").responseHandler;
-const { userInfoLimiter, adminUserInfoLimiter } = require("../utilities/").rateLimit;
+// const { userInfoLimiter, adminUserInfoLimiter } = require("../utilities/").rateLimit;
 
-router.post("/getUserInfo", userInfoLimiter, (req, res) => {
+router.post("/getUserInfo", (req, res) => {
   let appointmentUserId = req.body.userId;
   if (userController.isUserAdmin(req.user)) {
     appointmentUserId = req.body.appointmentUserId;
@@ -19,9 +19,7 @@ router.post("/getUserInfo", userInfoLimiter, (req, res) => {
     });
 });
 
-//withput limiter,just for admins
-// userInfoLimiter - to-do
-router.post("/getUsersNames", adminUserInfoLimiter, (req, res) => {
+router.post("/getUsersNames", (req, res) => {
   const { users } = req.body;
   userController
     .getUsersName(users)
