@@ -58,4 +58,15 @@ router.post("/setAppointmentCancelledUser", (req, res) => {
     });
 });
 
+router.put("/rating", (req, res) => {
+  const { appointmentId, rating } = req.body;
+
+  appointmentController
+    .updateRating(appointmentId, rating)
+    .then(data => responseHandler.json(res, data))
+    .catch(err => {
+      responseHandler.error(res, err, req);
+    });
+});
+
 module.exports = router;
