@@ -3,7 +3,6 @@ const health = require("./health");
 const HttpError = require("./httpError");
 const msGraph = require("./msGraph");
 const responseHandler = require("./responseHandler");
-// const rateLimit = require("./rateLimit");
 
 module.exports = {
   AppointmentService,
@@ -11,5 +10,4 @@ module.exports = {
   HttpError,
   msGraph,
   responseHandler,
-  // rateLimit
 };

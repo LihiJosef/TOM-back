@@ -3,7 +3,6 @@ const { appointment } = require("../controllers");
 const router = express.Router();
 const userController = require("../controllers").user;
 const responseHandler = require("../utilities").responseHandler;
-// const { userInfoLimiter, adminUserInfoLimiter } = require("../utilities/").rateLimit;
 
 router.post("/getUserInfo", (req, res) => {
   let appointmentUserId = req.body.userId;
