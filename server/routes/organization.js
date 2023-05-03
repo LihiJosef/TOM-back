@@ -12,4 +12,13 @@ router.get("/organizationCodes", (req, res) => {
     });
 });
 
+router.get("/allOrganizationCodes", (req, res) => {
+  organizationController
+    .getAllOrganizations()
+    .then(data => responseHandler.json(res, data))
+    .catch(err => {
+      responseHandler.error(res, err, req);
+    });
+});
+
 module.exports = router;

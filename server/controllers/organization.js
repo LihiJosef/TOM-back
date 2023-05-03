@@ -28,5 +28,11 @@ module.exports = {
         }
       ]
     });
+  },
+
+  async getAllOrganizations() {
+    return await DAL.Find(organizationMDL, {
+      attributes: ["id", "name"]
+    });
   }
 };
