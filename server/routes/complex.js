@@ -5,7 +5,7 @@ const responseHandler = require("../utilities").responseHandler;
 
 router.get("/complexCodes", (req, res) => {
   complexController
-    .getComplexes(req?.user)
+    .getComplexes(req.user.id)
     .then(data => responseHandler.json(res, data))
     .catch(err => {
       responseHandler.error(res, err, req);

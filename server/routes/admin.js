@@ -59,9 +59,8 @@ router.post("/appointment/getUnavailableHours", (req, res) => {
 
 router.post("/appointment/setAppointmentCancelledAdmin", (req, res) => {
   const { appointmentId } = req.body;
-
   appointmentController
-    .setAppointmentCancelled(appointmentId, req.body.userId, appointmentStatuses.CANCELLED_BY_ADMIN)
+    .setAppointmentCancelled(appointmentId, req.user.id, appointmentStatuses.CANCELLED_BY_ADMIN)
     .then(data => responseHandler.json(res, data))
     .catch(err => {
       responseHandler.error(res, err, req);

@@ -3,6 +3,7 @@
 /**
  * Module dependencies.
  */
+require("dotenv").config();
 process
   .on("SIGTERM", () => {
     console.info("SIGTERM signal received");

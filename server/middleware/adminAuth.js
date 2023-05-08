@@ -3,7 +3,7 @@ const { isUserAdmin } = require("../controllers").user;
 
 const adminAuth = async (req, res, next) => {
   try {
-    const userId = req?.user || req?.body?.userId || req?.query?.userId;
+    const userId = req.user.id
 
     if (!userId) {
       return responseHandler.unauthorized(res);

@@ -17,10 +17,10 @@ router.post("/getUnavailableHours", (req, res) => {
 });
 
 router.post("/createAppointment", (req, res) => {
-  const { userId, startDatetime, stationTypeId, complexId, userInfo, reason, stationId } = req.body;
+  const { startDatetime, stationTypeId, complexId, userInfo, reason, stationId } = req.body;
   appointmentController
     .createAppointment({
-      userId,
+      user: req.user,
       startDatetime,
       stationTypeId,
       complexId,

@@ -73,9 +73,9 @@ module.exports = class AppointmentService {
       throw new HttpError({ error: customResErrors.parametersValidation });
     }
     // validate user
-    await validateUser(userId);
+    validateUser(userId);
     // validate userInfo appointment created for
-    validateUserInfo({ userId: id, fullName, phone });
+    validateUserInfo({ userId, fullName, phone });
     // check appointments count for that complexId and day
     const MAX_POSSIBLE_APPOINTMENTS = parseInt(process.env.APPOINTMENT_MAX_USER_POSSIBLE_PER_DAY);
     const { isMaxExceeded, userAppointmentCount } = await this.checkUserReachedMaxAppointments({

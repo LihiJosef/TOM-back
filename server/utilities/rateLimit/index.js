@@ -35,7 +35,7 @@ const customHandler = function (req, res /*next*/) {
     rateLimitIpDebug(req);
   }
   const body = JSON.stringify(req.body);
-  console.info(`ratelimit|${req.ip}|${req.body.userId}|${body}`);
+  console.info(`ratelimit|${req.ip}|${req.user.id}|${body}`);
 
   res.status(404).json(customResErrors.user.userNotFound);
 };

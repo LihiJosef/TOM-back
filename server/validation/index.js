@@ -1,6 +1,4 @@
 const { isNullOrUndefinedOrEmpty } = require("../helpers");
-// const { getServiceTypeById } = require("../utilities/user");
-// const { serviceTypes } = require("../constants");
 
 const validateUserId = userId => {
   if (typeof userId !== "string" || userId.length > 9 || !userId.match(/^\d{9}$/)) {
@@ -29,32 +27,6 @@ const validateUserInfo = async ({ userId, fullName, phone }) => {
 const validateUser = async userId => {
   if (isNullOrUndefinedOrEmpty(userId) || !validateUserId(userId)) {
     throw new HttpError({ error: customResErrors.parametersValidation });
-  }
-  try {
-    // const serviceType = await getServiceTypeById(userId);
-    // if (
-    //   ![...serviceTypes.HOVA, ...serviceTypes.KEVA, ...serviceTypes.MILOEEM, ...serviceTypes.AHAZIM].includes(
-    //     serviceType
-    //   )
-    // ) {
-    //   const ERROR = new HttpError({ error: customResErrors.forbidden, params: { userId } });
-    //   trackException(ERROR, {
-    //     name: "user forbidden",
-    //     function: "validateUser",
-    //     userId,
-    //     userServiceType: serviceType
-    //   });
-
-    //   throw ERROR;
-    // }
-
-    return;
-  } catch (err) {
-    // check for 404
-    if (err.response && err.response.status === 404) {
-      throw new HttpError({ error: customResErrors.user.userNotFound, params: { userId } });
-    }
-    throw err;
   }
 };
 

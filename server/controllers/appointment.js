@@ -1,7 +1,6 @@
 // utils & helpers
 const DAL = require("../DAL");
 const moment = require("moment");
-const momentTimeZone = require("moment-timezone");
 
 const { Sequelize, QueryTypes, Op } = require("sequelize");
 const { sequelize } = require("../../database/models");
@@ -19,7 +18,6 @@ const disableComplexModel = require("../../database/models").disabledComplex;
 // controllers
 const { getScheduleSettings } = require("./complex");
 const { getAssignIntervalByStationType, getAvailableStation } = require("./station");
-const { findOrCreateUserFromClick, getUserInfo } = require("./user");
 const { getCurrentDisabledStations } = require("./disabledStation");
 const { getCurrentDisabledStationsTimes } = require("./disabledStation");
 const { trackEvent, trackException } = require("../utilities/logs");
@@ -77,9 +75,9 @@ const getFullCapacityHoursPerDay = async ({ day, stationTypeId, complexId, stati
   const potentialStations = stationId
     ? [{ id: stationId }]
     : await DAL.Find(stationMDL, {
-        attributes: ["id"],
-        where: { station_type_id: stationTypeId, complex_id: complexId }
-      });
+      attributes: ["id"],
+      where: { station_type_id: stationTypeId, complex_id: complexId }
+    });
 
   if (!potentialStations) {
     throw new HttpError({ error: customResErrors.station.noStationMatch, params: { stationTypeId } });
@@ -338,7 +336,7 @@ module.exports = {
     return allDisablesTime;
   },
   async createAppointment({
-    userId,
+    user,
     startDatetime,
     stationTypeId,
     complexId,
@@ -347,21 +345,20 @@ module.exports = {
     reason
   }) {
     const { id } = userInfo;
-    const appointment = new AppointmentService(appointmentMDL, userId, id);
+    const appointment = new AppointmentService(appointmentMDL, user.id, id);
 
     const startDatetimeList = [].concat(startDatetime);
-    const { fullName, phone } = userId == userInfo.id ? await getUserInfo(id) : userInfo;
 
     await appointment.createAppointmentValidation({
-      userId,
+      userId: user.id,
       startDatetimeList,
       stationTypeId,
       complexId,
       userInfo,
       stationId,
       reason,
-      fullName,
-      phone
+      fullName: `${user.first_name} ${user.last_name}`,
+      phone: user.phone
     });
 
     // check that the startDateTime is valid by the complex schedule options and station interval
@@ -393,7 +390,7 @@ module.exports = {
           name: "appointment already exists",
           formattedStartDate,
           stationTypeId,
-          userId,
+          userId: user.id,
           complexId
         });
         failedAppointments.push(startDatetime);
@@ -430,11 +427,11 @@ module.exports = {
       const availableStation = stationForAllAppointments
         ? stationForAllAppointments
         : await getAvailableStation({
-            stationTypeId,
-            complexId,
-            appointmentDatetime: [formattedStartDate],
-            stationId
-          });
+          stationTypeId,
+          complexId,
+          appointmentDatetime: [formattedStartDate],
+          stationId
+        });
 
       if (isNullOrUndefinedOrEmpty(availableStation)) {
         failedAppointments.push(startDatetime);
@@ -442,7 +439,7 @@ module.exports = {
 
         trackException(ERROR, {
           name: "non available station",
-          userId,
+          userId: user.id,
           stationTypeId,
           complexId,
           startDatetime
@@ -455,11 +452,11 @@ module.exports = {
       const end_datetime = moment(formattedStartDate).add({ minute: minuteInterval });
 
       const newAppointment = {
-        userId,
+        userId: user.id,
         stationId: availableStation.id,
         start_datetime: formattedStartDate,
         end_datetime,
-        userInfo: { id, fullName, phone },
+        userInfo: { userId: user.id, fullName: `${user.first_name} ${user.last_name}`, phone: user.phone },
         reason,
         stationTypeId,
         complexId
@@ -469,7 +466,6 @@ module.exports = {
     }
 
     if (failedAppointments.length === 0) {
-      await findOrCreateUserFromClick(userId);
 
       for (const newAppointment of availableAppointments) {
         const {

@@ -19,12 +19,10 @@ const stationTypes = {
 };
 
 const customError = require("./customError");
-const { serviceTypes } = require("./serviceTypes");
 
 module.exports = {
   appointmentStatuses,
   stationTypes,
   environments,
-  customError,
-  serviceTypes
+  customError
 };

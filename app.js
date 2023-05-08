@@ -5,21 +5,16 @@ if (!process.env.NODE_ENV) {
 }
 
 const sts = require("strict-transport-security");
-const chalk = require("chalk");
 const createError = require("http-errors");
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
-const moment = require("moment");
 const morgan = require("morgan");
 
-const passport = require("passport");
-const { IS_AAD_ENABLED, AzureStrategy } = require("./server/config/aad");
 const adminAuth = require("./server/middleware/adminAuth");
-const aadAuth = require("./server/middleware/aadAuth");
+const authentication = require("./server/middleware/authentication");
 
-require("./server/config/insights.js");
 const app = express();
 app.disable("x-powered-by");
 const STS = sts.getSTS({ "max-age": { days: 10 }, includeSubDomains: true });
@@ -29,9 +24,6 @@ if (process.env.NODE_ENV !== environments.LOCAL) {
 }
 
 app.use(STS);
-app.use(passport.initialize());
-app.use(passport.session());
-passport.use(AzureStrategy);
 
 app.use(cors());
 app.use(cookieParser());
@@ -72,8 +64,8 @@ app.get("/", (req, res, next) => {
   }
 });
 
-// protect routes from here with passport
-IS_AAD_ENABLED && app.use(passport.authenticate("oauth-bearer", { session: false }), aadAuth);
+// protect routes from here
+app.use('/', authentication);
 
 // Routes -'/api/..'
 app.use("/api/user", require("./server/routes/user"));
