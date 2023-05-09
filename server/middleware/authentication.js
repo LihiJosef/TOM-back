@@ -24,7 +24,7 @@ async function validateAccessToken(token) {
 }
 
 module.exports = async (req, res, next) => {
-  console.log("A)")
+  console.log("A)" + req.url)
   try {
     // const userId = await validateAccessToken(req.headers.authorization);
     const userId = await validateAccessToken('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2ODM1ODIyOTYsInVzZXJJZCI6IjMyMjU0MjE4NCIsImlhdCI6MTY4MzU4MTA5Nn0.zYQYC0fnJ7PntM9bhRXDuQl3wI9UutxwcsRyTnwFpn8');
