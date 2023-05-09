@@ -592,6 +592,36 @@ module.exports = {
     }
   },
 
+  async updateRating(appointmentId, rating) {
+    if (isNullOrUndefinedOrEmpty(appointmentId)) {
+      throw new HttpError({ error: customResErrors.parametersValidation });
+    }
+
+    const transaction = await sequelize.transaction();
+
+    try {
+      const [amountRecords, infoRecordsUpdated] = await DAL.Update(
+        appointmentMDL,
+        { rating },
+        {
+          where: { id: appointmentId },
+          returning: true,
+          transaction
+        }
+      );
+
+      if (amountRecords === 0) {
+        throw new HttpError({ error: customResErrors.notFound });
+      } else {
+        await transaction.commit();
+        return infoRecordsUpdated;
+      }
+    } catch (err) {
+      await transaction.rollback();
+      throw err;
+    }
+  },
+
   async cancelAppointmentsByDisables({ stationId, statusId, allStationDisables, transaction }) {
     if (isNullOrUndefinedOrEmpty(stationId, statusId)) {
       throw new HttpError({ error: customResErrors.parametersValidation });
