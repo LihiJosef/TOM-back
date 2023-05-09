@@ -64,6 +64,9 @@ app.get("/", (req, res, next) => {
   }
 });
 
+// This route can be reached from register page without authentication
+app.use("/api/organization", require("./server/routes/organization"));
+
 // protect routes from here
 app.use('/', authentication);
 
@@ -71,7 +74,7 @@ app.use('/', authentication);
 app.use("/api/user", require("./server/routes/user"));
 app.use("/api/complex", require("./server/routes/complex"));
 app.use("/api/disableStation", require("./server/routes/disabledStation"));
-app.use("/api/organization", require("./server/routes/organization"));
+// app.use("/api/organization", require("./server/routes/organization"));
 app.use("/api/appointment", require("./server/routes/appointment"));
 app.use("/api/station", require("./server/routes/station"));
 app.use("/api/schedule", adminAuth, require("./server/routes/admin"));
