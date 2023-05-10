@@ -23,6 +23,8 @@ router.post("/getUsersNames", (req, res) => {
 });
 
 router.post("/getUserPhone", (req, res) => {
+  console.log("------------req.user")
+  console.log(req.user)
   responseHandler.json(res, { phone: req.user.phone });
 });
 
