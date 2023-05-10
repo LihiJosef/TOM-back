@@ -75,9 +75,9 @@ const getFullCapacityHoursPerDay = async ({ day, stationTypeId, complexId, stati
   const potentialStations = stationId
     ? [{ id: stationId }]
     : await DAL.Find(stationMDL, {
-      attributes: ["id"],
-      where: { station_type_id: stationTypeId, complex_id: complexId }
-    });
+        attributes: ["id"],
+        where: { station_type_id: stationTypeId, complex_id: complexId }
+      });
 
   if (!potentialStations) {
     throw new HttpError({ error: customResErrors.station.noStationMatch, params: { stationTypeId } });
@@ -344,8 +344,7 @@ module.exports = {
     stationId = null,
     reason
   }) {
-    const { id } = userInfo;
-    const appointment = new AppointmentService(appointmentMDL, user.id, id);
+    const appointment = new AppointmentService(appointmentMDL, user.id, userInfo.id);
 
     const startDatetimeList = [].concat(startDatetime);
 
@@ -354,11 +353,7 @@ module.exports = {
       startDatetimeList,
       stationTypeId,
       complexId,
-      userInfo,
-      stationId,
-      reason,
-      fullName: `${user.first_name} ${user.last_name}`,
-      phone: user.phone
+      userInfo
     });
 
     // check that the startDateTime is valid by the complex schedule options and station interval
@@ -427,11 +422,11 @@ module.exports = {
       const availableStation = stationForAllAppointments
         ? stationForAllAppointments
         : await getAvailableStation({
-          stationTypeId,
-          complexId,
-          appointmentDatetime: [formattedStartDate],
-          stationId
-        });
+            stationTypeId,
+            complexId,
+            appointmentDatetime: [formattedStartDate],
+            stationId
+          });
 
       if (isNullOrUndefinedOrEmpty(availableStation)) {
         failedAppointments.push(startDatetime);
@@ -456,7 +451,7 @@ module.exports = {
         stationId: availableStation.id,
         start_datetime: formattedStartDate,
         end_datetime,
-        userInfo: { userId: user.id, fullName: `${user.first_name} ${user.last_name}`, phone: user.phone },
+        userInfo,
         reason,
         stationTypeId,
         complexId
@@ -466,7 +461,6 @@ module.exports = {
     }
 
     if (failedAppointments.length === 0) {
-
       for (const newAppointment of availableAppointments) {
         const {
           status_id,
