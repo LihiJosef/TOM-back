@@ -9,7 +9,10 @@ router.post("/getUserInfo", (req, res) => {
     appointmentUserId = req.body.appointmentUserId;
   }
 
-  responseHandler.json(res, { phone: req.user.phone, fullName: `${req.user.first_name} ${req.user.last_name}` });
+  responseHandler.json(res, {
+    phone: req.user.phone,
+    fullName: `${req.user.first_name} ${req.user.last_name}`
+  });
 });
 
 router.post("/getUsersNames", (req, res) => {
@@ -22,10 +25,8 @@ router.post("/getUsersNames", (req, res) => {
     });
 });
 
-router.post("/getUserPhone", (req, res) => {
-  console.log("------------req.user")
-  console.log(req.user)
-  responseHandler.json(res, { phone: req.user.phone });
+router.post("/getUserDetails", (req, res) => {
+  responseHandler.json(res, { phone: req.user.phone, organizationId: req.user.organization_id });
 });
 
 module.exports = router;
