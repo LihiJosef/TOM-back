@@ -30,6 +30,7 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: "CASCADE"
     });
     User.belongsTo(models.Team, { foreignKey: "team_id" });
+    User.belongsTo(models.Organization, { foreignKey: "organization_id" });
   };
   return User;
 };
