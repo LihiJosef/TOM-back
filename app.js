@@ -67,6 +67,7 @@ app.get("/", (req, res, next) => {
 // This route can be reached from register page without authentication
 app.use("/api/organization", require("./server/routes/organization"));
 app.use("/api/createUser", require("./server/routes/createUser"));
+app.use("/api/login", require("./server/routes/login"));
 
 // protect routes from here
 app.use("/", authentication);

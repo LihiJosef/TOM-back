@@ -13,6 +13,7 @@ router.post("/", (req, res) => {
       console.log(err.message);
       responseHandler.error(res, err, req);
     });
+  // TODO:adialon implement register
 });
 
 module.exports = router;
