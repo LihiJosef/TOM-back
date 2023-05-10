@@ -52,18 +52,8 @@ module.exports = class AppointmentService {
     return data;
   }
 
-  async createAppointmentValidation({
-    userId,
-    startDatetimeList,
-    stationTypeId,
-    complexId,
-    userInfo,
-    stationId,
-    reason,
-    fullName,
-    phone
-  }) {
-    const { id } = userId;
+  async createAppointmentValidation({ userId, startDatetimeList, stationTypeId, complexId, userInfo }) {
+    const { id, fullName, phone } = userInfo;
     if (
       !userId ||
       !startDatetimeList?.length ||
