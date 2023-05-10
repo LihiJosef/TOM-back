@@ -3,8 +3,8 @@ const router = express.Router();
 const createUserController = require("../controllers").createUser;
 const responseHandler = require("../utilities").responseHandler;
 
-router.post("/", (req, res) => {
-  const { email, firstName, lastName, phone, teamId, organization } = req.body.user;
+router.post("/createUser", (req, res) => {
+  const { email, firstName, lastName, phone, teamId, organization } = req.body;
   createUserController
     .createUser({ email, firstName, lastName, phone, teamId, organization })
     .then(data => responseHandler.json(res, data))
