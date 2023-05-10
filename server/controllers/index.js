@@ -5,6 +5,7 @@ const disabledStation = require("./disabledStation");
 const appointment = require("./appointment");
 const organization = require("./organization");
 const deleteAppointments = require("./deleteAppointments");
+const createUser = require("./createUser");
 
 module.exports = {
   user,
@@ -13,5 +14,6 @@ module.exports = {
   complex,
   appointment,
   organization,
-  deleteAppointments
+  deleteAppointments,
+  createUser
 };
