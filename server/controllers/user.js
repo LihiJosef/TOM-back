@@ -72,5 +72,12 @@ module.exports = {
       },
       transaction
     });
+  },
+
+  async userValid(organizationId, userId) {
+    return await DAL.Find(userMDL, {
+      raw: true,
+      where: { id: userId, organization_id: organizationId }
+    });
   }
 };
