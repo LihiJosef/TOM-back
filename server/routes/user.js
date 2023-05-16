@@ -29,4 +29,23 @@ router.post("/getUserDetails", (req, res) => {
   responseHandler.json(res, { phone: req.user.phone, organizationId: req.user.organization_id });
 });
 
+router.get("/userValid", (req, res) => {
+  userController
+    .userValid(req.user.organization_id, req.query.appointmentUserId)
+    .then(data => {
+      console.log(data);
+      if (data[0]) {
+        responseHandler.json(res, {
+          phone: data[0].phone,
+          fullName: `${data[0].first_name} ${data[0].last_name}`
+        });
+      } else {
+        responseHandler.json(res, data);
+      }
+    })
+    .catch(err => {
+      responseHandler.error(res, err, req);
+    });
+});
+
 module.exports = router;
