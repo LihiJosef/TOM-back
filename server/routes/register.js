@@ -4,9 +4,9 @@ const createUserController = require("../controllers").createUser;
 const responseHandler = require("../utilities").responseHandler;
 
 router.post("/createUser", (req, res) => {
-  const { email, firstName, lastName, phone, teamId, organization } = req.body;
+  const { id, firstName, lastName, phone, teamId, organization } = req.body;
   createUserController
-    .createUser({ email, firstName, lastName, phone, teamId, organization })
+    .createUser({ id, firstName, lastName, phone, teamId, organization })
     .then(data => responseHandler.json(res, data))
     .catch(err => {
       console.log("error in create user");

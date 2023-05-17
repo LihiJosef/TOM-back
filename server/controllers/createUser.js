@@ -2,9 +2,9 @@ const DAL = require("../DAL");
 const userMDL = require("../../database/models").User;
 
 module.exports = {
-  async createUser({ email, firstName, lastName, phone, teamId = null, organization }) {
+  async createUser({ id, firstName, lastName, phone, teamId = null, organization }) {
     const newUser = await DAL.Create(userMDL, {
-      id: email,
+      id: id,
       first_name: firstName,
       last_name: lastName,
       phone: phone,
