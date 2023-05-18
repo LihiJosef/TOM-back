@@ -20,6 +20,11 @@ module.exports = (sequelize, DataTypes) => {
         onDelete: "CASCADE"
       });
 
+      Station.hasMany(models.StationCharacteristic, {
+        foreignKey: "station_id",
+        onDelete: "CASCADE"
+      });
+
       Station.belongsTo(models.StationType, {
         foreignKey: "station_type_id"
       });
