@@ -21,10 +21,9 @@ async function validateUserCredentials(userId, password) {
 }
 
 router.post("/", async (req, res) => {
-  const { userId, password } = req.body;
-  console.log("Login request received: ", userId, password);
+  const { id, password } = req.body;
   try {
-    const token = await validateUserCredentials(userId, password);
+    const token = await validateUserCredentials(id, password);
     res.send({ token: token }).status(200).end();
 
   } catch (exception) {
