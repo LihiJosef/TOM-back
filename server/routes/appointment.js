@@ -59,10 +59,10 @@ router.post("/setAppointmentCancelledUser", (req, res) => {
 });
 
 router.put("/rating", (req, res) => {
-  const { appointmentId, rating } = req.body;
+  const { stationId, rating } = req.body;
 
   appointmentController
-    .updateRating(appointmentId, rating)
+    .updateRating(stationId, req.user.id, rating)
     .then(data => responseHandler.json(res, data))
     .catch(err => {
       responseHandler.error(res, err, req);

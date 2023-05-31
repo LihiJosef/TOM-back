@@ -20,6 +20,11 @@ module.exports = (sequelize, DataTypes) => {
         onDelete: "CASCADE"
       });
 
+      Station.hasMany(models.StationCharacteristic, {
+        foreignKey: "station_id",
+        onDelete: "CASCADE"
+      });
+
       Station.belongsTo(models.StationType, {
         foreignKey: "station_type_id"
       });
@@ -35,7 +40,10 @@ module.exports = (sequelize, DataTypes) => {
       complex_id: DataTypes.INTEGER,
       station_type_id: DataTypes.INTEGER,
       is_active: DataTypes.BOOLEAN,
-      name: DataTypes.STRING
+      name: DataTypes.STRING,
+      x: DataTypes.FLOAT,
+      y: DataTypes.FLOAT,
+      floor: DataTypes.INTEGER,
     },
     {
       freezeTableName: true,

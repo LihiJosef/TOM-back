@@ -14,6 +14,8 @@ const stationTypeMDL = require("../../database/models").StationType;
 const complexMDL = require("../../database/models").Complex;
 const disabledStationModel = require("../../database/models").DisabledStation;
 const disableComplexModel = require("../../database/models").disabledComplex;
+const userCharacteristicRatingMDL = require("../../database/models").UserCharacteristicRating;
+const StationCharacteristicMDL = require("../../database/models").StationCharacteristic;
 
 // controllers
 const { getScheduleSettings } = require("./complex");
@@ -363,8 +365,11 @@ module.exports = {
       return moment(startDatetime).seconds(0).milliseconds(0).toISOString();
     });
 
+    // console.log(startTimeArray)
+
     // check the potential station to catch && the requested time is really available
     const stationForAllAppointments = await getAvailableStation({
+      user: userInfo,
       stationTypeId,
       complexId,
       appointmentDatetime: startTimeArray,
@@ -422,6 +427,7 @@ module.exports = {
       const availableStation = stationForAllAppointments
         ? stationForAllAppointments
         : await getAvailableStation({
+            user: userInfo,
             stationTypeId,
             complexId,
             appointmentDatetime: [formattedStartDate],
@@ -586,30 +592,86 @@ module.exports = {
     }
   },
 
-  async updateRating(appointmentId, rating) {
-    if (isNullOrUndefinedOrEmpty(appointmentId)) {
+  async updateRating(stationId, userId, rating) {
+    if (isNullOrUndefinedOrEmpty(stationId)) {
       throw new HttpError({ error: customResErrors.parametersValidation });
     }
 
     const transaction = await sequelize.transaction();
 
     try {
-      const [amountRecords, infoRecordsUpdated] = await DAL.Update(
-        appointmentMDL,
-        { rating },
-        {
-          where: { id: appointmentId },
-          returning: true,
-          transaction
-        }
-      );
 
-      if (amountRecords === 0) {
-        throw new HttpError({ error: customResErrors.notFound });
-      } else {
-        await transaction.commit();
-        return infoRecordsUpdated;
-      }
+      //get all station's characteristics
+      const characteristics = await DAL.Find(StationCharacteristicMDL, {
+        attributes: ["characteristic_id"],
+        where: {
+          station_id: stationId
+        },
+        raw: true
+      });
+
+      // for each characteristic - update user's rating
+      await Promise.all(characteristics.map(async characteristic => {
+        console.log(characteristic)
+        const existingRate = await DAL.FindOne(userCharacteristicRatingMDL, {
+          attributes: ["rating_avg", "rate_times"],
+          where: {
+            characteristic_id: characteristic.characteristic_id ,
+            user_id: userId 
+          },
+          raw: true
+        });
+
+        if(existingRate) {
+          const {rating_avg, rate_times} = existingRate;
+          // new avg forumla
+          const newAvg = rate_times*rating_avg/(rate_times+1.0) + rating/(rate_times+1.0)
+
+          const [amountRecords] = await DAL.Update(
+            userCharacteristicRatingMDL,
+            { rating_avg: newAvg, rate_times: rate_times+1 },
+            {
+              where: {
+                characteristic_id: characteristic.characteristic_id ,
+                user_id: userId 
+              },
+              returning: true,
+              transaction
+            }
+          );
+          if (amountRecords === 0) {
+            throw new HttpError({ error: customResErrors.notFound });
+          }
+        } else {
+          // no previous rating so creating one
+          const characteristicRating = {
+            user_id: userId,
+            characteristic_id: characteristic.characteristic_id,
+            rate_times: 1,
+            rating_avg: rating
+          }
+          await DAL.Create(userCharacteristicRatingMDL, characteristicRating);
+        }
+      }));
+
+      await transaction.commit();
+      
+      // const [amountRecords, infoRecordsUpdated] = await DAL.Update(
+      //   appointmentMDL,
+      //   { rating },
+      //   {
+      //     where: { id: appointmentId },
+      //     returning: true,
+      //     transaction
+      //   }
+      // );
+
+      // if (amountRecords === 0) {
+      //   throw new HttpError({ error: customResErrors.notFound });
+      // } else {
+      //   await transaction.commit();
+      //   return infoRecordsUpdated;
+      // }
     } catch (err) {
       await transaction.rollback();
       throw err;
