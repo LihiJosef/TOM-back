@@ -4,7 +4,7 @@ const moment = require("moment");
 const Op = require("../../database/models").Sequelize.Op;
 const sequelize = require("../../database/models").sequelize;
 const Sequelize = require("sequelize");
-const { QueryTypes } = require("sequelize");
+const { QueryTypes, INTEGER } = require("sequelize");
 const HttpError = require("../utilities").HttpError;
 const { isNullOrUndefinedOrEmpty, isNotObject } = require("../helpers");
 const {
@@ -16,6 +16,7 @@ const {
 } = require("./disabledStation");
 const { trackEvent, trackException } = require("../utilities/logs");
 const { getStationInterval } = require("../utilities/station");
+const user = require("./user");
 // models
 const stationMDL = require("../../database/models").Station;
 const stationTypeMDL = require("../../database/models").StationType;
@@ -29,7 +30,9 @@ const getStationById = async stationId => {
   return await DAL.FindByPk(stationMDL, stationId);
 };
 
+// FUNCTION TO ACTUALLY CHOOSE THE STATION
 const chooseBestStation = async ({
+  user,
   unavailableStations,
   stationId,
   appointmentDatetime,
@@ -44,7 +47,7 @@ const chooseBestStation = async ({
 
   const availableStations = await DAL.Find(stationMDL, {
     raw: true,
-    attributes: ["id", "name"],
+    // attributes: ["id", "name"],
     distinct: ["id"],
     where: {
       station_type_id: stationTypeId,
@@ -52,8 +55,15 @@ const chooseBestStation = async ({
       [Op.and]: idFilter
     }
   });
+  let availableStation;
 
-  let availableStation = availableStations[0];
+  // if its a personal work station - seating algorithm is executed 
+  if(stationTypeId == 3) {
+    availableStation = await seatingAlgo({user, availableStations, appointmentDatetime, complexId});
+  } else {
+    availableStation = availableStations[0];
+  }
+
 
   if (!stationId) {
     const userPreviousStationThatDay = await DAL.FindOne(appointmentMDL, {
@@ -81,6 +91,114 @@ const chooseBestStation = async ({
   }
   return availableStation;
 };
+
+const seatingAlgo = async ({user, availableStations, appointmentDatetime, complexId}) => {
+  const teamStations = await checkForTeamAppointments({user, appointmentDatetime, complexId});
+  if(teamStations.length) {
+    let filteredCloseStations = [];
+    // filtering and adding only stations close to the team
+    for (const station of availableStations) {
+      let currAmt = 0;
+      for (const teamStation of teamStations) {
+        if(station.floor == teamStation.floor) {
+          const distance = Math.sqrt(Math.pow(station.x - teamStation.x,2) + Math.pow(station.y - teamStation.y,2));
+
+          // checking if dsitance is close enough
+          if(distance < 5) {
+            currAmt++;
+          }
+        }
+      }
+      // adding the station and how many stations it is close to
+        filteredCloseStations.push({...station, amount: currAmt});
+    }
+    // sorting array to be descending by how many stations they're close to
+    filteredCloseStations.sort((a,b) => b.amount - a.amount);
+    availableStations = filteredCloseStations;
+  } 
+  // TODO: CALCULATE USER'S RATE FOR EACH AVILABLE STATION
+  for (const station of availableStations) {
+    const currRating = await calculateStationRating({stationId: station.id, userId: user.id});
+    // if amount exsits, which means there are stations close to team, weight the amount
+    if (station.amount == undefined || station.amount == null) {
+      station.rating = currRating;
+    } else {
+      const weightedRating = 0.7 * station.amount + 0.3 * currRating;
+      station.rating = weightedRating;
+    }
+  }
+  // order stations by their rating from best to worst
+  availableStations.sort((a,b) => b.rating - a.rating);
+  return availableStations[0];
+}
+
+const checkForTeamAppointments = async ({user, appointmentDatetime, complexId}) => {
+  // TODO: GET ALL USERS IN THE TEAM OF THE CURRENT USER
+  // TODO: MAKE A DB QUERY FOR ALL STATIONS WITH APPOINTMENTS ON THESE HOURS WHO ARE FOR PEOPLE IN THE USER'S TEAM
+  try {
+    const QUERY = `SELECT station.id, station.x, station.y, station.floor 
+                  FROM "Appointment" apt, "User" teamUsers, "Station" station, "User" me
+                  WHERE apt.user_id = teamUsers.id
+                        AND station.station_type_id = 3
+                        AND me.id = '${user.id}'
+                        AND me.team_id = teamUsers.team_id
+                        AND (apt.start_datetime BETWEEN '${appointmentDatetime[0]}' AND '${appointmentDatetime[appointmentDatetime.length - 1]}')
+                        AND station.id = apt.station_id
+                        AND station.complex_id = ${complexId}`;
+
+    const res = await sequelize.query(QUERY, {
+      type: QueryTypes.SELECT
+    });
+
+    return res;
+  } catch (err) {
+    trackException(err, { name: "cant get appointment's stations of team" });
+
+    throw err;
+  }
+}
+
+const calculateStationRating = async ({stationId, userId}) => {
+  try {
+    const characteristicsQuery = `SELECT char.id
+                  FROM "Characteristic" char, "StationCharacteristic" stationChar
+                  WHERE stationChar.station_id = ${stationId}
+                        AND stationChar.characteristic_id = char.id`;
+
+    const characteristics = await sequelize.query(characteristicsQuery, {
+      type: QueryTypes.SELECT
+    });
+    let ratingSum = 0;
+    let ratingCount = 0;
+    for (const char of characteristics) {
+      const ratingQuery = `SELECT rating_avg
+                    FROM "UserCharacteristicRating"
+                    WHERE user_id = '${userId}'
+                          AND characteristic_id = ${char.id}`;
+
+      const rating = await sequelize.query(ratingQuery, {
+      type: QueryTypes.SELECT
+      });
+
+      if (rating.length) {
+        ratingSum += rating[0].rating_avg;
+        ratingCount++;
+      }
+    }
+    let finalRatingAvg;
+    if (ratingCount) {
+      finalRatingAvg = ratingSum / ratingCount;
+    } else {
+      finalRatingAvg = 2.5;
+    }
+
+    return finalRatingAvg;
+  } catch (err) {
+    trackException(err, { name: "cant get appointment's stations of team" });
+
+    throw err;
+  }
+}
 
 const getUnavailableStations = async ({ stationTypeId, complexId, appointmentDatetime }) => {
   const disabledStations = await getCurrentDisabledStations(complexId, stationTypeId, appointmentDatetime);
@@ -111,13 +229,15 @@ module.exports = {
     return await getStationInterval(stationTypeId);
   },
 
-  async getAvailableStation({ stationTypeId, complexId, appointmentDatetime, stationId }) {
+  // THIS IS MAIN FUNCTION TO FIND STATION !!!
+  async getAvailableStation({ user, stationTypeId, complexId, appointmentDatetime, stationId }) {
     const unavailableStations = await getUnavailableStations({
       stationTypeId,
       complexId,
       appointmentDatetime
     });
     const bestStation = await chooseBestStation({
+      user,
       unavailableStations,
       stationId,
       appointmentDatetime,

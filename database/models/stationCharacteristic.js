@@ -20,8 +20,14 @@ module.exports = (sequelize, DataTypes) => {
   }
   StationCharacteristic.init(
     {
-      station_id: DataTypes.INTEGER,
-      characteristic_id: DataTypes.INTEGER,
+      station_id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true
+      },
+      characteristic_id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true
+      },
     },
     {
       freezeTableName: true,

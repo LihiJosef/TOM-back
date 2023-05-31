@@ -20,14 +20,23 @@ module.exports = (sequelize, DataTypes) => {
   }
   userCharacteristicRating.init(
     {
-      user_id: DataTypes.STRING(9),
-      characteristic_id: DataTypes.INTEGER,
+      user_id: {
+        type: DataTypes.STRING(9),
+        primaryKey: true
+      },
+      characteristic_id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true
+      },
       rating_avg: DataTypes.FLOAT,
       rate_times: DataTypes.INTEGER
     },
     {
       freezeTableName: true,
       underscored: true,
+      timestamps: true,
+      createdAt: "created_at",
+      updatedAt: "updated_at",
       sequelize,
       modelName: "UserCharacteristicRating"
     }
