@@ -25,8 +25,8 @@ router.post("/getUsersNames", (req, res) => {
     });
 });
 
-router.post("/getUserDetails", (req, res) => {
-  responseHandler.json(res, { phone: req.user.phone, organizationId: req.user.organization_id });
+router.post("/getUserData" , (req, res) => {
+  responseHandler.json(res, req.user);
 });
 
 module.exports = router;
