@@ -34,7 +34,7 @@ module.exports = async (req, res, next) => {
       throw "User not found";
     }
     req.user = userData;
-    req.body.userId = "322592973";
+    req.body.userId = userId;
 
     return next();
   } catch (err) {
