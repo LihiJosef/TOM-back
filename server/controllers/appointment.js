@@ -592,7 +592,7 @@ module.exports = {
     }
   },
 
-  async updateRating(stationId, userId, rating) {
+  async updateRating(stationId, userId, appointmentId, rating) {
     if (isNullOrUndefinedOrEmpty(stationId)) {
       throw new HttpError({ error: customResErrors.parametersValidation });
     }
@@ -654,24 +654,24 @@ module.exports = {
         }
       }));
 
-      await transaction.commit();
+      // await transaction.commit();
       
-      // const [amountRecords, infoRecordsUpdated] = await DAL.Update(
-      //   appointmentMDL,
-      //   { rating },
-      //   {
-      //     where: { id: appointmentId },
-      //     returning: true,
-      //     transaction
-      //   }
-      // );
+      const [amountRecords, infoRecordsUpdated] = await DAL.Update(
+        appointmentMDL,
+        { rating },
+        {
+          where: { id: appointmentId },
+          returning: true,
+          transaction
+        }
+      );
 
-      // if (amountRecords === 0) {
-      //   throw new HttpError({ error: customResErrors.notFound });
-      // } else {
-      //   await transaction.commit();
-      //   return infoRecordsUpdated;
-      // }
+      if (amountRecords === 0) {
+        throw new HttpError({ error: customResErrors.notFound });
+      } else {
+        await transaction.commit();
+        return infoRecordsUpdated;
+      }
     } catch (err) {
       await transaction.rollback();
       throw err;
