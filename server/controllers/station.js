@@ -123,7 +123,10 @@ const seatingAlgo = async ({user, availableStations, appointmentDatetime, comple
     if (station.amount == undefined || station.amount == null) {
       station.rating = currRating;
     } else {
-      const weightedRating = 0.7 * station.amount + 0.3 * currRating;
+      const maxStations = teamStations.length;
+      // 5 means max rating, 1 is the min rating and 0 is the min amount of stations.
+      const normalizedStationRating = ((station.amount - 0) / (maxStations - 0)*(5-1)) + 1
+      const weightedRating = 0.7 * normalizedStationRating + 0.3 * currRating;
       station.rating = weightedRating;
     }
   }
